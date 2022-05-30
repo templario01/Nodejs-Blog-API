@@ -1,0 +1,57 @@
+{
+  "name": "nodejs-blog-api",
+  "version": "1.0.0",
+  "description": "API Rest for Blog website",
+  "main": "index.js",
+  "scripts": {
+    "dev": "dotenv -e .env ts-node-dev --respawn --transpile-only --watch src src/server.ts",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "tsc --project tsconfig.json --noEmit && eslint \"{src,apps,libs,test}/**/*.ts\" --color --max-warnings=0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/templario01/Nodejs-Blog-API.git"
+  },
+  "author": "Victor Benavente",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/templario01/Nodejs-Blog-API/issues"
+  },
+  "homepage": "https://github.com/templario01/Nodejs-Blog-API#readme",
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.2",
+    "@types/cors": "^2.8.12",
+    "@types/express": "^4.17.13",
+    "@types/http-errors": "^1.8.2",
+    "@types/jsonwebtoken": "^8.5.8",
+    "@types/passport": "^1.0.7",
+    "@types/passport-jwt": "^3.0.6",
+    "@typescript-eslint/eslint-plugin": "^5.26.0",
+    "@typescript-eslint/parser": "^5.26.0",
+    "eslint": "^8.16.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "nodemon": "^2.0.16",
+    "prettier": "2.6.2",
+    "prisma": "^3.14.0",
+    "ts-node": "^10.8.0",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^4.7.2"
+  },
+  "dependencies": {
+    "@prisma/client": "^3.14.0",
+    "@sendgrid/mail": "^7.7.0",
+    "bcryptjs": "^2.4.3",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.13.2",
+    "cors": "^2.8.5",
+    "dotenv-cli": "^5.1.0",
+    "express": "^4.18.1",
+    "express-async-handler": "^1.2.0",
+    "http-errors": "^2.0.0",
+    "jsonwebtoken": "^8.5.1",
+    "passport": "^0.6.0",
+    "passport-jwt": "^4.0.0"
+  }
+}
