@@ -1,0 +1,128 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String          @id @default(uuid())
+  createdAt     DateTime        @default(now())
+  updateAt      DateTime        @default(now())
+  email         String          @unique
+  password      String
+  refreshToken  String?
+  isVerified    Boolean         @default(false)
+  profile       Profile?
+  role          Role[]
+  posts         Post[]
+  comments      Comment[]
+  likeToPost    LikeOnPost[]
+  likeToComment LikeOnComment[]
+  reportPost    PostReport[]
+  reportComment CommentReport[]
+
+  @@map("user")
+}
+
+model Profile {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updateAt  DateTime @default(now())
+  firstName String
+  lastName  String
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("profile")
+}
+
+model Role {
+  name      UserRole   @id @unique
+  user      User[]
+  createdAt DateTime @default(now())
+  updateAt  DateTime @default(now())
+
+  @@map("role")
+}
+
+model Post {
+  id           String       @id @default(uuid())
+  title        String
+  content      String
+  userId       String
+  status        PostStatus
+  author       User         @relation(fields: [userId], references: [id])
+  comments     Comment[]
+  likeFromUser LikeOnPost[]
+  report       PostReport[]
+
+  @@map("post")
+}
+
+model Comment {
+  id           String          @id @default(uuid())
+  userId       String
+  author       User            @relation(fields: [userId], references: [id])
+  postId       String
+  post         Post            @relation(fields: [postId], references: [id])
+  likeFromUser LikeOnComment[]
+  report       CommentReport[]
+
+  @@map("comment")
+}
+
+model LikeOnPost {
+  postId String
+  userId String
+  post   Post   @relation(fields: [postId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@id([postId, userId])
+  @@map("like_on_post")
+}
+
+model LikeOnComment {
+  userId    String
+  commentId String
+  user      User    @relation(fields: [userId], references: [id])
+  comment   Comment @relation(fields: [commentId], references: [id])
+
+  @@id([userId, commentId])
+  @@map("like_on_comment")
+}
+
+model PostReport {
+  userId String
+  postId String
+  user   User   @relation(fields: [userId], references: [id])
+  post   Post   @relation(fields: [postId], references: [id])
+
+  @@id([userId, postId])
+  @@map("postReport")
+}
+
+model CommentReport {
+  userId    String
+  commentId String
+  user      User    @relation(fields: [userId], references: [id])
+  comment   Comment @relation(fields: [commentId], references: [id])
+
+  @@id([userId, commentId])
+  @@map("comment_report")
+}
+
+enum PostStatus {
+  PUBLISHED
+  DRAFT
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
