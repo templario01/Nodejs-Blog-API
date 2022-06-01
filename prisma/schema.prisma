@@ -43,7 +43,7 @@ model Profile {
 }
 
 model Role {
-  name      UserRole   @id @unique
+  name      UserRole @id @unique
   user      User[]
   createdAt DateTime @default(now())
   updateAt  DateTime @default(now())
@@ -53,10 +53,12 @@ model Role {
 
 model Post {
   id           String       @id @default(uuid())
+  createdAt    DateTime     @default(now())
+  updateAt     DateTime     @default(now())
   title        String
   content      String
   userId       String
-  status        PostStatus
+  status       PostStatus
   author       User         @relation(fields: [userId], references: [id])
   comments     Comment[]
   likeFromUser LikeOnPost[]
@@ -67,6 +69,8 @@ model Post {
 
 model Comment {
   id           String          @id @default(uuid())
+  createdAt    DateTime        @default(now())
+  updateAt     DateTime        @default(now())
   userId       String
   author       User            @relation(fields: [userId], references: [id])
   postId       String
@@ -79,7 +83,7 @@ model Comment {
 
 model LikeOnPost {
   postId String
-  userId String
+  userId String @unique
   post   Post   @relation(fields: [postId], references: [id])
   user   User   @relation(fields: [userId], references: [id])
 
@@ -88,7 +92,7 @@ model LikeOnPost {
 }
 
 model LikeOnComment {
-  userId    String
+  userId    String  @unique
   commentId String
   user      User    @relation(fields: [userId], references: [id])
   comment   Comment @relation(fields: [commentId], references: [id])
@@ -98,22 +102,32 @@ model LikeOnComment {
 }
 
 model PostReport {
-  userId String
-  postId String
-  user   User   @relation(fields: [userId], references: [id])
-  post   Post   @relation(fields: [postId], references: [id])
+  id        String       @default(uuid())
+  createdAt DateTime     @default(now())
+  updateAt  DateTime     @default(now())
+  reason    ReportReason
+  message   String?
+  userId    String
+  postId    String
+  user      User         @relation(fields: [userId], references: [id])
+  post      Post         @relation(fields: [postId], references: [id])
 
-  @@id([userId, postId])
+  @@id([userId, postId, id])
   @@map("postReport")
 }
 
 model CommentReport {
+  id        String       @default(uuid())
+  createdAt DateTime     @default(now())
+  updateAt  DateTime     @default(now())
+  reason    ReportReason
+  message   String?
   userId    String
   commentId String
-  user      User    @relation(fields: [userId], references: [id])
-  comment   Comment @relation(fields: [commentId], references: [id])
+  user      User         @relation(fields: [userId], references: [id])
+  comment   Comment      @relation(fields: [commentId], references: [id])
 
-  @@id([userId, commentId])
+  @@id([userId, commentId, id])
   @@map("comment_report")
 }
 
@@ -125,4 +139,15 @@ enum PostStatus {
 enum UserRole {
   USER
   ADMIN
+}
+
+enum ReportReason {
+  SPAM
+  FAKE_NEWS
+  LANGUAGE_THAT_INSTIGATES_HATE
+  BULLYING
+  APOLOGY_OF_TERRORISM
+  DISLIKE
+  JUST_DONT_LIKE
+  OTHER_PROBLEM
 }
