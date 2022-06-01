@@ -4,7 +4,7 @@
   "description": "API Rest for Blog website",
   "main": "index.js",
   "scripts": {
-    "dev": "dotenv -e .env ts-node-dev --respawn --transpile-only --watch src src/server.ts",
+    "dev": "dotenv -e .env -- ts-node-dev --respawn --transpile-only --watch src src/server.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "tsc --project tsconfig.json --noEmit && eslint \"{src,apps,libs,test}/**/*.ts\" --color --max-warnings=0"
   },
@@ -24,6 +24,7 @@
     "@types/express": "^4.17.13",
     "@types/http-errors": "^1.8.2",
     "@types/jsonwebtoken": "^8.5.8",
+    "@types/node": "^17.0.38",
     "@types/passport": "^1.0.7",
     "@types/passport-jwt": "^3.0.6",
     "@typescript-eslint/eslint-plugin": "^5.26.0",

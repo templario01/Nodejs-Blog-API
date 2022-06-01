@@ -1,3 +1,4 @@
+import 'reflect-metadata'
 import express, { Application, Request, Response } from 'express'
 import passport from 'passport'
 import cors, { CorsOptions } from 'cors'
@@ -33,5 +34,5 @@ app.get('/api/v1/status', (req: Request, res: Response) => {
 
 app.listen(PORT, () => {
   // eslint-disable-next-line no-console
-  console.log(`Server listening on port %d, env: %s`, PORT, ENVIROMENT)
+  console.log(`Server listening on port %d, env: %s 🚀`, PORT, ENVIROMENT)
 })
