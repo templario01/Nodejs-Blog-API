@@ -1,7 +1,11 @@
 import 'reflect-metadata'
-import express, { Application, Request, Response } from 'express'
+import express, { Application, NextFunction, Request, Response } from 'express'
 import passport from 'passport'
 import cors, { CorsOptions } from 'cors'
+import { HttpError } from 'http-errors'
+import { plainToClass } from 'class-transformer'
+import { HttpErrorDto } from './dtos/http-error.dto'
+import { router } from './router'
 
 const app: Application = express()
 const PORT = process.env.PORT || 3000
@@ -25,12 +29,32 @@ const corsOptionsDelegate = function handler(
   callback(null, corsOptions)
 }
 
+function errorHandler(
+  err: HttpError,
+  req: Request,
+  res: Response,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  next: NextFunction,
+): void {
+  if (ENVIROMENT !== 'development') {
+    // eslint-disable-next-line no-console
+    console.error(err.message)
+    // eslint-disable-next-line no-console
+    console.error(err.stack || '')
+  }
+
+  res.status(err.status ?? 500)
+  res.json(plainToClass(HttpErrorDto, err))
+}
+
 app.use(cors(corsOptionsDelegate))
 
 // Routes
 app.get('/api/v1/status', (req: Request, res: Response) => {
   res.json({ time: new Date() })
 })
+app.use('/', router(app))
+app.use(errorHandler)
 
 app.listen(PORT, () => {
   // eslint-disable-next-line no-console

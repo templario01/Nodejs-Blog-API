@@ -134,6 +134,7 @@ model CommentReport {
 enum PostStatus {
   PUBLISHED
   DRAFT
+  DELETED
 }
 
 enum UserRole {
