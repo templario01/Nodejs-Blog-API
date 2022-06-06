@@ -16,7 +16,9 @@ export class CreatePostRequest extends BaseDto {
   readonly content: string
 
   @Expose()
-  @IsEnum(() => PostStatus)
+  @IsEnum(() => PostStatus, {
+    message: 'Supported values: PUBLISHED or DRAFT',
+  })
   @IsNotEmpty()
   readonly postStatus: PostStatus
 }

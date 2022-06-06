@@ -4,12 +4,12 @@ import { CreatePostRequest } from '../dtos/post/request/create-post.dto'
 import { PostService } from '../services/post.service'
 
 export async function createPost(req: Request, res: Response): Promise<void> {
-  console.log(req.params.id)
+  console.log(req.query)
   const request = plainToClass(CreatePostRequest, req.params)
   await request.isValid()
   const result = await PostService.createPost(
     request,
-    '263a5a8c-c92d-4f32-890b-61fccfc0f4d9',
+    '263a5a8c-c92d-4f32-890b-61fccfc0f4d93',
   )
 
   res.status(201).json(result)
