@@ -16,6 +16,7 @@ model User {
   updateAt      DateTime        @default(now())
   email         String          @unique
   password      String
+  status        AccountStatus   @default(ACTIVE)
   refreshToken  String?
   isVerified    Boolean         @default(false)
   profile       Profile?
@@ -153,4 +154,9 @@ enum ReportReason {
   DISLIKE
   JUST_DONT_LIKE
   OTHER_PROBLEM
+}
+
+enum AccountStatus {
+  ACTIVE
+  INACTIVE
 }

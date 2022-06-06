@@ -1,16 +1,37 @@
 import { plainToClass } from 'class-transformer'
 import { Request, Response } from 'express'
 import { CreatePostRequest } from '../dtos/post/request/create-post.dto'
+import { UpdatePostRequest } from '../dtos/post/request/update-post.dto'
 import { PostService } from '../services/post.service'
 
 export async function createPost(req: Request, res: Response): Promise<void> {
-  console.log(req.query)
-  const request = plainToClass(CreatePostRequest, req.params)
+  const request = plainToClass(CreatePostRequest, req.body)
   await request.isValid()
-  const result = await PostService.createPost(
-    request,
-    '263a5a8c-c92d-4f32-890b-61fccfc0f4d93',
-  )
+  const result = await PostService.createPost(request, req.query.id as string)
+  res.status(201).json(result)
+}
 
+export async function getAllPosts(req: Request, res: Response): Promise<void> {
+  const result = await PostService.getAllPosts(
+    Number(req.query?.skip),
+    Number(req.query?.pageNumber),
+  )
+  res.status(201).json(result)
+}
+
+export async function getPost(req: Request, res: Response): Promise<void> {
+  const result = await PostService.getPostById(req.query.id as string)
+  res.status(201).json(result)
+}
+
+export async function updatePost(req: Request, res: Response): Promise<void> {
+  const request = plainToClass(UpdatePostRequest, req.body)
+  await request.isValid()
+  const result = await PostService.updatePost(request, req.query.id as string)
+  res.status(201).json(result)
+}
+
+export async function deletePost(req: Request, res: Response): Promise<void> {
+  const result = await PostService.changeToDeleted(req.query.id as string)
   res.status(201).json(result)
 }
