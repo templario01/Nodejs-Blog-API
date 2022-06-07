@@ -11,12 +11,9 @@ export class AuthService {
     if (user) {
       throw new UnprocessableEntity('Email already taken')
     }
-    const newUser = await UserService.createAccount(params)
-    const refreshToken = this.generateToken(7200, newUser.id)
-    const userWithToken = await UserService.setRefreshToken(
-      newUser.id,
-      refreshToken,
-    )
+    const { id } = await UserService.createAccount(params)
+    const refreshToken = this.generateToken(7200, id)
+    const userWithToken = await UserService.setRefreshToken(id, refreshToken)
     const accessToken = this.generateToken(1800, userWithToken.id)
 
     return {
@@ -48,8 +45,13 @@ export class AuthService {
     }
   }
 
-  static async getNewAccessToken(refreshToken: string) {
+  static async getNewAccessToken(
+    refreshToken: string,
+  ): Promise<AccessTokenResponse> {
     const user = await UserService.findByRefreshToken(refreshToken)
+    if (!user?.refreshToken) {
+      throw new Unauthorized('Your refresh token have been expired')
+    }
     const newRefreshToken = this.generateToken(7200, user.id)
     const accessToken = this.generateToken(1800, user.id)
     await UserService.setRefreshToken(user.id, newRefreshToken)

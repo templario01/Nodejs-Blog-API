@@ -16,10 +16,11 @@ export class UserService {
     })
   }
 
-  static findUserByEmail(email: string): Promise<UserWithRole> {
+  static findUserByEmail(email: string): Promise<UserWithRole | null> {
     return prisma.user.findUnique({
       where: { email },
       include: { role: true },
+      rejectOnNotFound: false,
     })
   }
 
@@ -70,15 +71,16 @@ export class UserService {
     })
   }
 
-  static findByRefreshToken(refreshToken: string): Promise<User> {
+  static findByRefreshToken(refreshToken: string): Promise<User | null> {
     return prisma.user.findFirst({
       where: {
         refreshToken,
       },
+      rejectOnNotFound: false,
     })
   }
 
-  static setRefreshToken(token: string, userId: string): Promise<User> {
+  static setRefreshToken(userId: string, token: string): Promise<User> {
     return prisma.user.update({
       where: { id: userId },
       data: { refreshToken: token },

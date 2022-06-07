@@ -6,6 +6,7 @@ import { HttpError } from 'http-errors'
 import { plainToClass } from 'class-transformer'
 import { HttpErrorDto } from './dtos/http-error.dto'
 import { router } from './router'
+import JWTStrategy from './guards/authentication.guard'
 
 const app: Application = express()
 const PORT = process.env.PORT || 3000
@@ -14,6 +15,7 @@ const ENVIROMENT = process.env.NODE_ENV || 'development'
 // // Middlewares
 app.use(express.json())
 app.use(passport.initialize())
+passport.use('authGuard', JWTStrategy)
 
 const whiteList = ['http://localhost:3000']
 const corsOptionsDelegate = function handler(
