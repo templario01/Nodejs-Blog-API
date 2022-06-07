@@ -1,4 +1,3 @@
-import { UnprocessableEntity } from 'http-errors'
 import bcrypt from 'bcryptjs'
 import { AccountStatus, Role, User } from '@prisma/client'
 import { CreateUserRequest } from '../dtos/user/request/create-account.dto'
@@ -12,23 +11,20 @@ export type UserWithRole = User & {
 export class UserService {
   static findUserById(userId: string): Promise<UserWithRole> {
     return prisma.user.findUnique({
-      where: {
-        id: userId,
-      },
-      include: {
-        role: true,
-      },
+      where: { id: userId },
+      include: { role: true },
+    })
+  }
+
+  static findUserByEmail(email: string): Promise<UserWithRole> {
+    return prisma.user.findUnique({
+      where: { email },
+      include: { role: true },
     })
   }
 
   static async createAccount(params: CreateUserRequest): Promise<User> {
     const { email, firstName, lastName, password } = params
-    const findUser = await prisma.user.findFirst({
-      where: { email: params.email },
-    })
-    if (findUser) {
-      throw new UnprocessableEntity('Email already taken')
-    }
     const encryptPassword = await this.encryptPassword(password)
 
     return prisma.user.create({
@@ -74,6 +70,27 @@ export class UserService {
     })
   }
 
+  static findByRefreshToken(refreshToken: string): Promise<User> {
+    return prisma.user.findFirst({
+      where: {
+        refreshToken,
+      },
+    })
+  }
+
+  static setRefreshToken(token: string, userId: string): Promise<User> {
+    return prisma.user.update({
+      where: { id: userId },
+      data: { refreshToken: token },
+    })
+  }
+  static removeRefreshToken(userId: string): Promise<User> {
+    return prisma.user.update({
+      where: { id: userId },
+      data: { refreshToken: null },
+    })
+  }
+
   static getProfileByUserId(userId: string) {
     return prisma.profile.findUnique({
       where: {
@@ -88,5 +105,12 @@ export class UserService {
   private static async encryptPassword(pass: string): Promise<string> {
     const salt = await bcrypt.genSalt(10)
     return bcrypt.hash(pass, salt)
+  }
+
+  static comparePassword(
+    password: string,
+    savedPassword: string,
+  ): Promise<boolean> {
+    return bcrypt.compare(password, savedPassword)
   }
 }
