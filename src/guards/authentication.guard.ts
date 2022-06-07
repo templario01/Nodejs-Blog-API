@@ -1,3 +1,4 @@
+import { Request } from 'express'
 import passport from 'passport'
 import {
   ExtractJwt,
@@ -9,15 +10,13 @@ import { UserService, UserWithRole } from '../services/user.service'
 export default new JWTStrategy(
   {
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-    secretOrKey: 'holavictor',
+    secretOrKey: process.env.SECRET_KEY,
   },
   async (payload, done: VerifiedCallback) => {
     try {
-      const user = await UserService.findUserById(payload.id)
+      const user = (await UserService.findUserById(payload.id)) as UserWithRole
       return user ? done(null, user) : done(null, false)
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.log(error)
       return done(error)
     }
   },

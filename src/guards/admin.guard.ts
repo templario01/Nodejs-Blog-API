@@ -8,7 +8,7 @@ export const AdminGuard = async (
   res: Response,
   done: VerifiedCallback,
 ) => {
-  const admin = req.user.role.find((elem) => elem.name === UserRole.ADMIN)
+  const admin = req.user.role.some((elem) => elem.name === UserRole.ADMIN)
 
   if (!admin) {
     return res.status(405).json({ message: 'Unauthorized, just admins' })

@@ -4,8 +4,10 @@ import { postRoutes } from './routes/post.route'
 const expressRouter = express.Router()
 
 export function router(app: Router): Router {
-  // put all routes here
+  app.use('/api/v1/auth', postRoutes())
+  app.use('/api/v1/account', postRoutes())
   app.use('/api/v1/post', postRoutes())
+  app.use('/api/v1/comment', postRoutes())
 
   return expressRouter
 }
