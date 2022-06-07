@@ -23,8 +23,7 @@ model User {
   role          Role[]
   posts         Post[]
   comments      Comment[]
-  likeToPost    LikeOnPost[]
-  likeToComment LikeOnComment[]
+  reaction      Reaction[]
   reportPost    PostReport[]
   reportComment CommentReport[]
 
@@ -53,55 +52,48 @@ model Role {
 }
 
 model Post {
-  id           String       @id @default(uuid())
-  createdAt    DateTime     @default(now())
-  updateAt     DateTime     @default(now())
-  title        String
-  content      String
-  userId       String
-  status       PostStatus
-  author       User         @relation(fields: [userId], references: [id])
-  comments     Comment[]
-  likeFromUser LikeOnPost[]
-  report       PostReport[]
+  id            String       @id @default(uuid())
+  createdAt     DateTime     @default(now())
+  updateAt      DateTime     @default(now())
+  title         String
+  content       String
+  userId        String
+  totalLikes    Int          @default(0)
+  totalDislikes Int          @default(0)
+  status        PostStatus
+  author        User         @relation(fields: [userId], references: [id])
+  comments      Comment[]
+  report        PostReport[]
 
   @@map("post")
 }
 
 model Comment {
-  id           String          @id @default(uuid())
-  content      String
-  createdAt    DateTime        @default(now())
-  updateAt     DateTime        @default(now())
-  status       PostStatus
-  userId       String
-  author       User            @relation(fields: [userId], references: [id])
-  postId       String
-  post         Post            @relation(fields: [postId], references: [id])
-  likeFromUser LikeOnComment[]
-  report       CommentReport[]
+  id            String          @id @default(uuid())
+  content       String
+  createdAt     DateTime        @default(now())
+  updateAt      DateTime        @default(now())
+  totalLikes    Int             @default(0)
+  totalDislikes Int             @default(0)
+  status        PostStatus
+  userId        String
+  author        User            @relation(fields: [userId], references: [id])
+  postId        String
+  post          Post            @relation(fields: [postId], references: [id])
+  report        CommentReport[]
 
   @@map("comment")
 }
 
-model LikeOnPost {
-  postId String
-  userId String @unique
-  post   Post   @relation(fields: [postId], references: [id])
-  user   User   @relation(fields: [userId], references: [id])
+model Reaction {
+  postOrCommentId String
+  userId          String
+  reactionType    ReactionType
+  user            User         @relation(fields: [userId], references: [id])
+  source          Source
 
-  @@id([postId, userId])
-  @@map("like_on_post")
-}
-
-model LikeOnComment {
-  userId    String  @unique
-  commentId String
-  user      User    @relation(fields: [userId], references: [id])
-  comment   Comment @relation(fields: [commentId], references: [id])
-
-  @@id([userId, commentId])
-  @@map("like_on_comment")
+  @@id([userId, postOrCommentId])
+  @@map("like")
 }
 
 model PostReport {
@@ -159,4 +151,15 @@ enum ReportReason {
 enum AccountStatus {
   ACTIVE
   INACTIVE
+}
+
+enum Source {
+  POST
+  COMMENT
+}
+
+enum ReactionType {
+  LIKE
+  DISLIKE
+  UNSPECIFIED
 }
