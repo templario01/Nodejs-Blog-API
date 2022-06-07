@@ -31,13 +31,14 @@ model User {
 }
 
 model Profile {
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
-  updateAt  DateTime @default(now())
+  id        String      @id @default(uuid())
+  createdAt DateTime    @default(now())
+  updateAt  DateTime    @default(now())
+  view      ProfileView @default(PUBLIC)
   firstName String
   lastName  String
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id])
+  userId    String      @unique
+  user      User        @relation(fields: [userId], references: [id])
 
   @@map("profile")
 }
@@ -162,4 +163,9 @@ enum ReactionType {
   LIKE
   DISLIKE
   UNSPECIFIED
+}
+
+enum ProfileView {
+  PUBLIC
+  PRIVATE
 }

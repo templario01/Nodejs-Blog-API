@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs'
-import { AccountStatus, Role, User } from '@prisma/client'
+import { AccountStatus, Post, ProfileView, Role, User } from '@prisma/client'
 import { CreateUserRequest } from '../dtos/user/request/create-account.dto'
 import { prisma } from '../prisma'
 import { UpdateUserRequest } from '../dtos/user/request/update-account.dto'
@@ -8,11 +8,66 @@ export type UserWithRole = User & {
   role: Role[]
 }
 
+export type UserWithProfile = {
+  email: string
+  posts?: Post[]
+  profile?: {
+    view?: ProfileView
+    firstName?: string
+    lastName?: string
+    createdAt?: Date
+  } | null
+}
+
 export class UserService {
   static findUserById(userId: string): Promise<UserWithRole> {
     return prisma.user.findUnique({
       where: { id: userId },
       include: { role: true },
+    })
+  }
+
+  static async findUserWithProfileById(
+    userId: string,
+  ): Promise<UserWithProfile> {
+    const { profile } = await prisma.user.findFirst({
+      where: {
+        id: userId,
+        profile: {
+          view: ProfileView.PUBLIC,
+        },
+      },
+      select: {
+        profile: {
+          select: {
+            view: true,
+          },
+        },
+      },
+    })
+    if (profile?.view == ProfileView.PRIVATE) {
+      return prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          email: true,
+          profile: { select: { view: true } },
+        },
+      })
+    }
+
+    return prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        email: true,
+        posts: true,
+        profile: {
+          select: {
+            firstName: true,
+            lastName: true,
+            createdAt: true,
+          },
+        },
+      },
     })
   }
 
@@ -53,8 +108,7 @@ export class UserService {
     })
   }
 
-  static updateUser(params: UpdateUserRequest): Promise<User> {
-    const { userId } = params
+  static updateUser(params: UpdateUserRequest, userId: string): Promise<User> {
     return prisma.user.update({
       where: {
         id: userId,
@@ -63,6 +117,7 @@ export class UserService {
         password: params.password,
         profile: {
           update: {
+            view: params.view,
             firstName: params.firstName,
             lastName: params.lastName,
           },
