@@ -1,4 +1,10 @@
-import { PrismaClient, Role, User, UserRole } from '@prisma/client'
+import {
+  AccountStatus,
+  PrismaClient,
+  Role,
+  User,
+  UserRole,
+} from '@prisma/client'
 import { hashSync } from 'bcryptjs'
 
 const prisma = new PrismaClient()
@@ -53,10 +59,10 @@ async function createUser(
     where: { email: username },
     create: {
       email: username,
-      isVerified: true,
+      status: AccountStatus.ACTIVE,
       role: { connect: { name: role } },
       password,
     },
-    update: { isVerified: true, password },
+    update: { status: AccountStatus.ACTIVE, password },
   })
 }

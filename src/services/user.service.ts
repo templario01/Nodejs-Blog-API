@@ -1,6 +1,13 @@
 import bcrypt from 'bcryptjs'
 import { randGitShortSha } from '@ngneat/falso'
-import { AccountStatus, Post, ProfileView, Role, User } from '@prisma/client'
+import {
+  AccountStatus,
+  Post,
+  Profile,
+  ProfileView,
+  Role,
+  User,
+} from '@prisma/client'
 import { CreateUserRequest } from '../dtos/user/request/create-account.dto'
 import { prisma } from '../prisma'
 import { UpdateUserRequest } from '../dtos/user/request/update-account.dto'
@@ -18,6 +25,10 @@ export type UserWithProfile = {
     lastName?: string
     createdAt?: Date
   } | null
+}
+
+export type UserWithCompleteProfile = User & {
+  profile: Profile | null
 }
 
 export class UserService {
@@ -80,10 +91,12 @@ export class UserService {
     })
   }
 
-  static async createAccount(params: CreateUserRequest): Promise<User> {
+  static async createAccount(
+    params: CreateUserRequest,
+  ): Promise<UserWithCompleteProfile> {
     const { email, firstName, lastName, password } = params
     const encryptPassword = await this.encryptPassword(password)
-    const code = randGitShortSha().toUpperCase()
+    const code = randGitShortSha().toUpperCase().slice(1)
 
     return prisma.user.create({
       data: {
@@ -97,6 +110,7 @@ export class UserService {
           },
         },
       },
+      include: { profile: true },
     })
   }
 
@@ -107,6 +121,7 @@ export class UserService {
       },
       data: {
         status: AccountStatus.INACTIVE,
+        updateAt: new Date(),
       },
     })
   }
@@ -118,11 +133,13 @@ export class UserService {
       },
       data: {
         password: params.password,
+        updateAt: new Date(),
         profile: {
           update: {
             view: params.view,
             firstName: params.firstName,
             lastName: params.lastName,
+            updateAt: new Date(),
           },
         },
       },
@@ -141,13 +158,13 @@ export class UserService {
   static setRefreshToken(userId: string, token: string): Promise<User> {
     return prisma.user.update({
       where: { id: userId },
-      data: { refreshToken: token },
+      data: { refreshToken: token, updateAt: new Date() },
     })
   }
   static removeRefreshToken(userId: string): Promise<User> {
     return prisma.user.update({
       where: { id: userId },
-      data: { refreshToken: null },
+      data: { refreshToken: null, updateAt: new Date() },
     })
   }
 
@@ -181,15 +198,23 @@ export class UserService {
       },
       data: {
         verificationCode: null,
+        updateAt: new Date(),
       },
     })
   }
 
   static resendCode(userId: string) {
-    const code = randGitShortSha().toUpperCase()
+    const code = randGitShortSha().toUpperCase().slice(1)
     return prisma.user.update({
       where: { id: userId },
       data: { verificationCode: code, updateAt: new Date() },
+    })
+  }
+
+  static verifyAccount(userId: string): Promise<User> {
+    return prisma.user.update({
+      where: { id: userId },
+      data: { status: AccountStatus.ACTIVE, updateAt: new Date() },
     })
   }
 }

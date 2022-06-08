@@ -1,7 +1,9 @@
 import { EventEmitter } from 'events'
-import * as sgMail from '@sendgrid/mail'
+import { MailService } from '@sendgrid/mail'
 import { mailBody } from './mail.request'
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const sgMail = require('@sendgrid/mail') as MailService
 export const emitter = new EventEmitter()
 
 emitter.on('notify-mail', (request: mailBody) => {
@@ -12,7 +14,7 @@ emitter.on('notify-mail', (request: mailBody) => {
   const msg = {
     to: email, // Change to your recipient
     from: senderEmail, // Change to your verified sender
-    subject: request.subject ?? 'Sending with SendGrid is Fun',
+    subject: request.subject ?? '[Blog API] Verification Code',
     text: request.text ?? 'and easy to do anywhere, even with Node.js',
     html:
       request.html ??
@@ -31,6 +33,4 @@ emitter.on('notify-mail', (request: mailBody) => {
       // eslint-disable-next-line no-console
       console.error(error)
     })
-  // eslint-disable-next-line no-console
-  console.log('sending email notification...')
 })
