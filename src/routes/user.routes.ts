@@ -15,7 +15,7 @@ export function userRoutes(): Router {
   router
     .route('/:id')
     .get(expressAsyncHandler(getProfileById))
-    .patch(expressAsyncHandler(updateProfile))
+    .patch([UserAuth], expressAsyncHandler(updateProfile))
 
   return router
 }

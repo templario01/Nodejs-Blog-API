@@ -12,10 +12,11 @@ import { UserAuth } from '../guards/authentication.guard'
 const router: Router = Router()
 
 export function commentRoutes(): Router {
-  router.route('/').post(expressAsyncHandler(CreateComment))
+  router.route('/').post([UserAuth], expressAsyncHandler(CreateComment))
 
   router
     .route('/:id')
+    .all([UserAuth])
     .patch(expressAsyncHandler(UpdateComment))
     .delete(expressAsyncHandler(markCommentAsDeleted))
 

@@ -4,9 +4,11 @@ import passport from 'passport'
 import cors, { CorsOptions } from 'cors'
 import { HttpError } from 'http-errors'
 import { plainToClass } from 'class-transformer'
+import { serve, setup } from 'swagger-ui-express'
 import { HttpErrorDto } from './dtos/http-error.dto'
 import { router } from './router'
 import JWTStrategy from './guards/authentication.guard'
+import { documentation } from './swagger'
 
 const app: Application = express()
 const PORT = process.env.PORT || 3000
@@ -55,6 +57,7 @@ app.use(cors(corsOptionsDelegate))
 app.get('/api/v1/status', (req: Request, res: Response) => {
   res.json({ time: new Date() })
 })
+app.use('/api/docs', serve, setup(documentation, { explorer: true }))
 app.use('/', router(app))
 app.use(errorHandler)
 
