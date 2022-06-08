@@ -4,6 +4,7 @@ import {
   createPost,
   deletePost,
   getAllPosts,
+  getCommentsByPostId,
   getPost,
   setDislikeToPost,
   setLikeToPost,
@@ -30,6 +31,8 @@ export function postRoutes(): Router {
   router
     .route('/:id/dislike')
     .put([UserAuth], expressAsyncHandler(setDislikeToPost))
+
+  router.route('/:id/comments').get(expressAsyncHandler(getCommentsByPostId))
 
   return router
 }

@@ -1,4 +1,5 @@
 import { Comment, PostStatus, Prisma } from '@prisma/client'
+import { Unauthorized } from 'http-errors'
 import { CreateCommentRequest } from '../dtos/comment/request/create-coment.dto'
 import { UpdateCommentRequest } from '../dtos/comment/request/update-comment.dto'
 import { prisma } from '../prisma'
@@ -21,8 +22,24 @@ export class CommentService {
     })
   }
 
-  static updateComment(params: UpdateCommentRequest): Promise<Comment> {
-    const { commentId, commentStatus, content } = params
+  static getCommentsByUser(userId: string) {
+    return prisma.comment.findMany({
+      where: { userId },
+    })
+  }
+
+  static async updateComment(
+    params: UpdateCommentRequest,
+    commentId: string,
+    userId: string,
+  ) {
+    const userComments = (
+      await prisma.comment.findMany({ where: { userId } })
+    ).map((comment) => comment.id)
+    if (!userComments.includes(commentId)) {
+      throw new Unauthorized(`Comment id:${commentId} is not yours`)
+    }
+    const { commentStatus, content } = params
     return prisma.comment.update({
       where: {
         id: commentId,
@@ -34,7 +51,16 @@ export class CommentService {
     })
   }
 
-  static changeToDeleted(commentId: string): Promise<Comment> {
+  static async changeToDeleted(
+    commentId: string,
+    userId: string,
+  ): Promise<Comment> {
+    const userComments = (
+      await prisma.comment.findMany({ where: { userId } })
+    ).map((comment) => comment.id)
+    if (!userComments.includes(commentId)) {
+      throw new Unauthorized(`Comment id:${commentId} is not yours`)
+    }
     return prisma.comment.update({
       where: {
         id: commentId,

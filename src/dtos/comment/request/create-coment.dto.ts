@@ -7,9 +7,16 @@ import { BaseDto } from '../../baste.dto'
 export class CreateCommentRequest extends BaseDto {
   @Expose()
   @IsString()
+  @IsNotEmpty()
   readonly content: string
 
   @Expose()
+  @IsString()
+  @IsNotEmpty()
+  readonly postId: string
+
+  @Expose()
+  @IsNotEmpty()
   @IsEnum(() => PostStatus, {
     message: 'Supported values: PUBLISHED or DRAFT',
   })

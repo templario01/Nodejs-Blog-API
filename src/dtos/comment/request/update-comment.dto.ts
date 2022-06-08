@@ -1,8 +1,19 @@
-import { IsNotEmpty, IsString } from 'class-validator'
-import { CreateCommentRequest } from './create-coment.dto'
+import { PostStatus } from '@prisma/client'
+import { Exclude, Expose } from 'class-transformer'
+import { IsEnum, IsOptional, IsString } from 'class-validator'
+import { BaseDto } from '../../baste.dto'
 
-export class UpdateCommentRequest extends CreateCommentRequest {
-  @IsNotEmpty()
+@Exclude()
+export class UpdateCommentRequest extends BaseDto {
+  @Expose()
   @IsString()
-  commentId: string
+  @IsOptional()
+  readonly content: string
+
+  @IsOptional()
+  @Expose()
+  @IsEnum(() => PostStatus, {
+    message: 'Supported values: PUBLISHED or DRAFT',
+  })
+  readonly commentStatus: PostStatus
 }

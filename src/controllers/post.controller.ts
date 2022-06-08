@@ -2,6 +2,7 @@ import { plainToClass } from 'class-transformer'
 import { Request, Response } from 'express'
 import { CreatePostRequest } from '../dtos/post/request/create-post.dto'
 import { UpdatePostRequest } from '../dtos/post/request/update-post.dto'
+import { CommentService } from '../services/comment.service'
 import { PostService } from '../services/post.service'
 import { ReactionsService } from '../services/reactions.service'
 import { UserWithRole } from '../services/user.service'
@@ -58,6 +59,18 @@ export async function setDislikeToPost(
   const result = await ReactionsService.setDislikeToPost(
     id,
     req.query.id as string,
+  )
+  res.status(201).json(result)
+}
+
+export async function getCommentsByPostId(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  const result = await CommentService.getAllCommentByPostId(
+    req.query.id as string,
+    Number(req.query?.skip),
+    Number(req.query?.pageNumber),
   )
   res.status(201).json(result)
 }
