@@ -203,11 +203,12 @@ export class UserService {
     })
   }
 
-  static resendCode(userId: string) {
+  static resendCode(userId: string): Promise<UserWithCompleteProfile> {
     const code = randGitShortSha().toUpperCase().slice(1)
     return prisma.user.update({
       where: { id: userId },
       data: { verificationCode: code, updateAt: new Date() },
+      include: { profile: true },
     })
   }
 

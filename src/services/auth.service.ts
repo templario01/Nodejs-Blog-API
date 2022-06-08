@@ -57,8 +57,14 @@ export class AuthService {
     if (!matchPassword) {
       throw new Unauthorized('user or password invalid')
     }
-    const { updateAt } = await UserService.resendCode(user.id)
-    const mailNotification: mailBody = { email }
+
+    const { updateAt, verificationCode, profile } =
+      await UserService.resendCode(user.id)
+    const htmlBody = generateEmailBody(
+      verificationCode as string,
+      profile?.firstName as string,
+    )
+    const mailNotification: mailBody = { email, html: htmlBody }
     emitter.emit('notify-mail', mailNotification)
 
     return {
