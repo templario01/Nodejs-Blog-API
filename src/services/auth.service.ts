@@ -10,6 +10,8 @@ import { CreateUserRequest } from '../dtos/user/request/create-account.dto'
 import { SignInRequest } from '../dtos/user/request/signin-request.dto'
 import { AccessTokenResponse } from '../dtos/user/response/access-token.response'
 import { verifyEmail } from '../dtos/user/response/create-account.response'
+import { emitter } from '../events/mail-emitter'
+import { mailBody } from '../events/mail.request'
 import { UserService } from './user.service'
 
 export class AuthService {
@@ -19,6 +21,8 @@ export class AuthService {
       throw new UnprocessableEntity('Email already taken')
     }
     const { createdAt, email } = await UserService.createAccount(params)
+    const mailNotification: mailBody = { email }
+    emitter.emit('notify-mail', mailNotification)
 
     return {
       sentDate: createdAt,
@@ -47,6 +51,8 @@ export class AuthService {
       throw new Unauthorized('user or password invalid')
     }
     const { updateAt } = await UserService.resendCode(user.id)
+    const mailNotification: mailBody = { email }
+    emitter.emit('notify-mail', mailNotification)
 
     return {
       sentDate: updateAt,
