@@ -11,21 +11,21 @@ datasource db {
 }
 
 model User {
-  id            String          @id @default(uuid())
-  createdAt     DateTime        @default(now())
-  updateAt      DateTime        @default(now())
-  email         String          @unique
-  password      String
-  status        AccountStatus   @default(ACTIVE)
-  refreshToken  String?
-  isVerified    Boolean         @default(false)
-  profile       Profile?
-  role          Role[]
-  posts         Post[]
-  comments      Comment[]
-  reaction      Reaction[]
-  reportPost    PostReport[]
-  reportComment CommentReport[]
+  id               String          @id @default(uuid())
+  createdAt        DateTime        @default(now())
+  updateAt         DateTime        @default(now())
+  email            String          @unique
+  password         String
+  status           AccountStatus   @default(UNVERIFIED)
+  refreshToken     String?
+  verificationCode String?
+  profile          Profile?
+  role             Role[]
+  posts            Post[]
+  comments         Comment[]
+  reaction         Reaction[]
+  reportPost       PostReport[]
+  reportComment    CommentReport[]
 
   @@map("user")
 }
@@ -152,6 +152,7 @@ enum ReportReason {
 enum AccountStatus {
   ACTIVE
   INACTIVE
+  UNVERIFIED
 }
 
 enum Source {

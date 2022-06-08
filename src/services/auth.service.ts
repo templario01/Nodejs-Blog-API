@@ -1,24 +1,58 @@
 import jwt from 'jsonwebtoken'
-import { NotFound, Unauthorized, UnprocessableEntity } from 'http-errors'
+import {
+  NotFound,
+  Unauthorized,
+  UnprocessableEntity,
+  BadRequest,
+} from 'http-errors'
+import { AccountStatus } from '@prisma/client'
 import { CreateUserRequest } from '../dtos/user/request/create-account.dto'
 import { SignInRequest } from '../dtos/user/request/signin-request.dto'
 import { AccessTokenResponse } from '../dtos/user/response/access-token.response'
+import { verifyEmail } from '../dtos/user/response/create-account.response'
 import { UserService } from './user.service'
 
 export class AuthService {
-  static async signUp(params: CreateUserRequest): Promise<AccessTokenResponse> {
+  static async signUp(params: CreateUserRequest): Promise<verifyEmail> {
     const user = await UserService.findUserByEmail(params.email)
     if (user) {
       throw new UnprocessableEntity('Email already taken')
     }
-    const { id } = await UserService.createAccount(params)
-    const refreshToken = this.generateToken(7200, id)
-    const userWithToken = await UserService.setRefreshToken(id, refreshToken)
-    const accessToken = this.generateToken(1800, userWithToken.id)
+    const { createdAt, email } = await UserService.createAccount(params)
 
     return {
-      access_token: accessToken,
-      refresh_token: refreshToken,
+      sentDate: createdAt,
+      email: email,
+      expirationTime: '3 hours',
+      message: 'Please verify your account in your email',
+    }
+  }
+
+  static async requestVerification(
+    params: SignInRequest,
+  ): Promise<verifyEmail> {
+    const { email, password } = params
+    const user = await UserService.findUserByEmail(email)
+    if (!user) {
+      throw new NotFound(`email: ${email} does not exist`)
+    }
+    if (user.status !== AccountStatus.UNVERIFIED) {
+      throw new BadRequest(`email already verified, please Login`)
+    }
+    const matchPassword = await UserService.comparePassword(
+      password,
+      user.password,
+    )
+    if (!matchPassword) {
+      throw new Unauthorized('user or password invalid')
+    }
+    const { updateAt } = await UserService.resendCode(user.id)
+
+    return {
+      sentDate: updateAt,
+      email: email,
+      expirationTime: '3 hours',
+      message: 'Please verify your account in your email',
     }
   }
 
@@ -27,6 +61,9 @@ export class AuthService {
     const user = await UserService.findUserByEmail(email)
     if (!user) {
       throw new NotFound(`email: ${email} does not exist`)
+    }
+    if (user.status !== AccountStatus.ACTIVE) {
+      throw new Unauthorized(`please confirm your email`)
     }
     const matchPassword = await UserService.comparePassword(
       password,

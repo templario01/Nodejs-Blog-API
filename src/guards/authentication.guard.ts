@@ -1,3 +1,4 @@
+import { AccountStatus } from '@prisma/client'
 import { Request } from 'express'
 import passport from 'passport'
 import {
@@ -15,7 +16,9 @@ export default new JWTStrategy(
   async (payload, done: VerifiedCallback) => {
     try {
       const user = (await UserService.findUserById(payload.id)) as UserWithRole
-      return user ? done(null, user) : done(null, false)
+      return user.status === AccountStatus.ACTIVE
+        ? done(null, user)
+        : done(null, false)
     } catch (error) {
       return done(error)
     }

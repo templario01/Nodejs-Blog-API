@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs'
+import { randGitShortSha } from '@ngneat/falso'
 import { AccountStatus, Post, ProfileView, Role, User } from '@prisma/client'
 import { CreateUserRequest } from '../dtos/user/request/create-account.dto'
 import { prisma } from '../prisma'
@@ -82,9 +83,11 @@ export class UserService {
   static async createAccount(params: CreateUserRequest): Promise<User> {
     const { email, firstName, lastName, password } = params
     const encryptPassword = await this.encryptPassword(password)
+    const code = randGitShortSha().toUpperCase()
 
     return prisma.user.create({
       data: {
+        verificationCode: code,
         password: encryptPassword,
         email,
         profile: {
@@ -169,5 +172,24 @@ export class UserService {
     savedPassword: string,
   ): Promise<boolean> {
     return bcrypt.compare(password, savedPassword)
+  }
+
+  static resetVerifyCodeOfAccounts() {
+    return prisma.user.updateMany({
+      where: {
+        status: AccountStatus.UNVERIFIED,
+      },
+      data: {
+        verificationCode: null,
+      },
+    })
+  }
+
+  static resendCode(userId: string) {
+    const code = randGitShortSha().toUpperCase()
+    return prisma.user.update({
+      where: { id: userId },
+      data: { verificationCode: code, updateAt: new Date() },
+    })
   }
 }
