@@ -8,9 +8,16 @@ import {
   Role,
   User,
 } from '@prisma/client'
+import { plainToClass } from 'class-transformer'
 import { CreateUserRequest } from '../dtos/user/request/create-account.dto'
 import { prisma } from '../prisma'
 import { UpdateUserRequest } from '../dtos/user/request/update-account.dto'
+import {
+  CreateAttachment,
+  CreateUserImageRequest,
+} from '../dtos/attachment/create-attachment.dto'
+import { AttachmentResponse } from '../dtos/attachment/response/attachment.response'
+import { AtachmentService } from './attachment.service'
 
 export type UserWithRole = User & {
   role: Role[]
@@ -216,6 +223,23 @@ export class UserService {
     return prisma.user.update({
       where: { id: userId },
       data: { status: AccountStatus.ACTIVE, updateAt: new Date() },
+    })
+  }
+
+  static async saveProfileImage(request: CreateUserImageRequest) {
+    const { id } = await prisma.profile.findUnique({
+      where: { userId: request.id },
+    })
+    const attachmentRequest: CreateAttachment = {
+      ...request,
+      postOrProfileId: id,
+    }
+    const attachmentService = new AtachmentService()
+    const setImage = await attachmentService.createAttachment(attachmentRequest)
+
+    return plainToClass(AttachmentResponse, {
+      ...setImage,
+      parentId: request.id,
     })
   }
 }

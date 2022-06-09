@@ -1,5 +1,6 @@
 import { plainToClass } from 'class-transformer'
 import { Request, Response } from 'express'
+import { CreateUserImageRequest } from '../dtos/attachment/create-attachment.dto'
 import { UpdateUserRequest } from '../dtos/user/request/update-account.dto'
 import { UserService, UserWithRole } from '../services/user.service'
 
@@ -26,5 +27,12 @@ export async function updateProfile(
   const request = plainToClass(UpdateUserRequest, req.body)
   await request.isValid()
   const result = await UserService.updateUser(request, req.query.id as string)
+  res.status(201).json(result)
+}
+
+export async function createImage(req: Request, res: Response): Promise<void> {
+  const request = plainToClass(CreateUserImageRequest, req.body)
+  await request.isValid()
+  const result = await UserService.saveProfileImage(request)
   res.status(201).json(result)
 }
