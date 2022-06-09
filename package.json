@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only --watch src src/server.ts",
     "start": "nodemon --exec ts-node src/server.ts",
+    "migrate": "npx prisma migrate deploy",
     "seed": "ts-node ./prisma/seed",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "tsc --project tsconfig.json --noEmit && eslint \"{src,apps,libs,test}/**/*.ts\" --color --max-warnings=0"
