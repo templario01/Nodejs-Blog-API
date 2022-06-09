@@ -46,6 +46,7 @@
     "typescript": "^4.7.2"
   },
   "dependencies": {
+    "@google-cloud/storage": "^6.1.0",
     "@ngneat/falso": "^5.7.0",
     "@prisma/client": "^3.14.0",
     "@sendgrid/mail": "^7.7.0",

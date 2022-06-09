@@ -31,16 +31,35 @@ model User {
 }
 
 model Profile {
-  id        String      @id @default(uuid())
-  createdAt DateTime    @default(now())
-  updateAt  DateTime    @default(now())
-  view      ProfileView @default(PUBLIC)
-  firstName String
-  lastName  String
-  userId    String      @unique
-  user      User        @relation(fields: [userId], references: [id])
+  id         String      @id @default(uuid())
+  createdAt  DateTime    @default(now())
+  updateAt   DateTime    @default(now())
+  view       ProfileView @default(PUBLIC)
+  attachment Attachment?
+  firstName  String
+  lastName   String
+  userId     String      @unique
+  user       User        @relation(fields: [userId], references: [id])
 
   @@map("profile")
+}
+
+model Attachment {
+  id           Int      @id @default(autoincrement())
+  uuid         String   @unique @default(uuid())
+  path         String
+  keyname      String
+  ext          String
+  contentType  String
+  parentType   String
+  profileImage Profile? @relation(fields: [profileId], references: [id])
+  postImage    Post?    @relation(fields: [postId], references: [id])
+  profileId    String?  @unique
+  postId       String?  @unique
+  createdAt    DateTime @default(now())
+  updateAt     DateTime @default(now())
+
+  @@map("attachment")
 }
 
 model Role {
@@ -62,6 +81,7 @@ model Post {
   totalLikes    Int          @default(0)
   totalDislikes Int          @default(0)
   status        PostStatus
+  attachment    Attachment?
   author        User         @relation(fields: [userId], references: [id])
   comments      Comment[]
   report        PostReport[]
