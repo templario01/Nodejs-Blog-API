@@ -46,9 +46,9 @@ export class AtachmentService {
 
     const image = await prisma.attachment.create({
       data: {
-        contentType: input.contentType,
+        contentType: input.contentType as string,
         keyname: `${nanoId}-${input.filename}`,
-        ext: input.ext,
+        ext: input.ext as string,
         path,
         postId:
           input.parentType === ParentEnum.POST ? input.postOrProfileId : null,
