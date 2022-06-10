@@ -12,8 +12,8 @@ emitter.on('notify-mail', (request: mailBody) => {
   sgMail.setApiKey(process.env.SENDGRID_API_KEY as string)
 
   const msg = {
-    to: email, // Change to your recipient
-    from: senderEmail, // Change to your verified sender
+    to: email,
+    from: senderEmail,
     subject: request.subject ?? '[Blog API] Verification Code',
     text: request.text ?? 'and easy to do anywhere, even with Node.js',
     html:

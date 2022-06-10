@@ -5,9 +5,9 @@ export enum FileExtensionEnum {
 }
 
 export enum ContentTypeEnum {
-  'PNG' = 'image/png',
-  'JPG' = 'image/jpg',
-  'JPEG' = 'image/jpeg',
+  PNG = 'image/png',
+  JPG = 'image/jpg',
+  JPEG = 'image/jpeg',
 }
 
 export enum ParentEnum {
