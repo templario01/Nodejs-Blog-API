@@ -8,6 +8,7 @@ import {
   Role,
   User,
 } from '@prisma/client'
+import { BadRequest, NotFound } from 'http-errors'
 import { plainToClass } from 'class-transformer'
 import { CreateUserRequest } from '../dtos/user/request/create-account.dto'
 import { prisma } from '../prisma'
@@ -17,6 +18,7 @@ import {
   CreateUserImageRequest,
 } from '../dtos/attachment/create-attachment.dto'
 import { AttachmentResponse } from '../dtos/attachment/response/attachment.response'
+import { UpdateUserImageRequest } from '../dtos/attachment/update-attachment.dto'
 import { AtachmentService } from './attachment.service'
 
 export type UserWithRole = User & {
@@ -226,20 +228,40 @@ export class UserService {
     })
   }
 
-  static async saveProfileImage(request: CreateUserImageRequest) {
+  static async saveProfileImage(
+    request: CreateUserImageRequest,
+    userId: string,
+  ) {
     const { id } = await prisma.profile.findUnique({
-      where: { userId: request.id },
+      where: { userId },
     })
+    const haveImage = await AtachmentService.findByProfile(id)
+    if (haveImage) {
+      throw new BadRequest(`user already have profile image`)
+    }
     const attachmentRequest: CreateAttachment = {
       ...request,
       postOrProfileId: id,
     }
-    const attachmentService = new AtachmentService()
-    const setImage = await attachmentService.createAttachment(attachmentRequest)
+    const setImage = await AtachmentService.createAttachment(attachmentRequest)
 
     return plainToClass(AttachmentResponse, {
       ...setImage,
-      parentId: request.id,
+      parentId: userId,
     })
+  }
+
+  static async updateProfileImage(
+    request: UpdateUserImageRequest,
+    userId: string,
+  ) {
+    const { id } = await prisma.profile.findUnique({
+      where: { userId },
+    })
+    const findImage = await AtachmentService.findByProfile(id)
+    if (!findImage) {
+      throw new NotFound(`image not found, please set an image`)
+    }
+    return AtachmentService.updateImageById(request, findImage.id)
   }
 }

@@ -4,6 +4,8 @@ import {
   getMyProfile,
   getProfileById,
   updateProfile,
+  createImage,
+  updateImage,
 } from '../controllers/user.controller'
 import { UserAuth } from '../guards/authentication.guard'
 
@@ -16,6 +18,12 @@ export function userRoutes(): Router {
     .route('/:id')
     .get(expressAsyncHandler(getProfileById))
     .patch([UserAuth], expressAsyncHandler(updateProfile))
+
+  router
+    .route('/signed-url')
+    .all([UserAuth])
+    .post(expressAsyncHandler(createImage))
+    .patch(expressAsyncHandler(updateImage))
 
   return router
 }
