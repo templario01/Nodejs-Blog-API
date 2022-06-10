@@ -34,7 +34,7 @@ export async function updateProfile(
 export async function createImage(req: Request, res: Response): Promise<void> {
   const { id } = req.user as UserWithRole
   const request = plainToClass(CreateUserImageRequest, req.body)
-
+  await request.isValid()
   const result = await UserService.saveProfileImage(request, id)
   res.status(201).json(result)
 }
@@ -42,7 +42,7 @@ export async function createImage(req: Request, res: Response): Promise<void> {
 export async function updateImage(req: Request, res: Response): Promise<void> {
   const { id } = req.user as UserWithRole
   const request = plainToClass(UpdateUserImageRequest, req.body)
-
+  await request.isValid()
   const result = await UserService.updateProfileImage(request, id)
   res.status(201).json(result)
 }

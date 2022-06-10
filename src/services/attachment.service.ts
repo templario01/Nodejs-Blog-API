@@ -1,6 +1,7 @@
 import { GetSignedUrlConfig, Storage } from '@google-cloud/storage'
 import { Cors } from '@google-cloud/storage/build/src/storage'
 import { randEthereumAddress } from '@ngneat/falso'
+import { Attachment } from '@prisma/client'
 import { plainToClass } from 'class-transformer'
 import {
   AttachmentDirectoryEnum,
@@ -8,7 +9,6 @@ import {
 } from '../dtos/attachment/attachment.enum'
 import { CreateAttachment } from '../dtos/attachment/create-attachment.dto'
 import { AttachmentResponse } from '../dtos/attachment/response/attachment.response'
-import { UpdateUserImageRequest } from '../dtos/attachment/update-attachment.dto'
 import { prisma } from '../prisma'
 
 const corsCfg: Cors = {
@@ -63,12 +63,12 @@ export class AtachmentService {
     }
   }
 
-  static async findByProfile(profileId: string) {
+  static async findByProfile(profileId: string): Promise<Attachment | null> {
     return prisma.attachment.findFirst({
       where: {
         profileId,
       },
-      rejectOnNotFound: true,
+      rejectOnNotFound: false,
     })
   }
 
@@ -98,10 +98,15 @@ export class AtachmentService {
     })
   }
 
-  static async updateImageById(
-    input: UpdateUserImageRequest,
-    attachmentId: number,
-  ) {
+  static async find(imageId: number) {
+    return prisma.attachment.findUnique({
+      where: {
+        id: imageId,
+      },
+    })
+  }
+
+  static async updateImageById(input: CreateAttachment, attachmentId: number) {
     const signedUploadCfg = {
       contentType: input.contentType,
       action: 'write',
@@ -110,15 +115,20 @@ export class AtachmentService {
     }
     const path = AttachmentDirectoryEnum[input.parentType].toString()
     const nanoId = randEthereumAddress()
+    const file = `${path}/${nanoId}-${input.filename}.${input.ext}`
     const signedURL = await bucket
-      .file(`${path}/${nanoId}-${input.filename}.${input.ext}`)
+      .file(file)
       .getSignedUrl(signedUploadCfg as GetSignedUrlConfig)
+
+    const previousImg = await this.find(attachmentId)
+    const previousFile = `${previousImg.path}/${previousImg.keyname}.${previousImg.ext}`
+    await this.deleteFileInGoogle(previousFile)
 
     const image = await prisma.attachment.update({
       where: { id: attachmentId },
       data: {
         contentType: input.contentType,
-        keyname: input.filename,
+        keyname: `${nanoId}-${input.filename}`,
         path: path,
         ext: input.ext,
       },
@@ -128,6 +138,13 @@ export class AtachmentService {
       ...image,
       signedUrl: signedURL.toString(),
     }
+  }
+
+  static deleteFileInGoogle(file: string) {
+    return storage
+      .bucket(process.env.GS_AVATAR_BUCKET as string)
+      .file(file)
+      .delete()
   }
 }
 

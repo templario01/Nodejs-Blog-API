@@ -15,15 +15,15 @@ export function userRoutes(): Router {
   router.route('/me').get([UserAuth], expressAsyncHandler(getMyProfile))
 
   router
-    .route('/:id')
-    .get(expressAsyncHandler(getProfileById))
-    .patch([UserAuth], expressAsyncHandler(updateProfile))
-
-  router
     .route('/signed-url')
     .all([UserAuth])
     .post(expressAsyncHandler(createImage))
     .patch(expressAsyncHandler(updateImage))
+
+  router
+    .route('/:id')
+    .get(expressAsyncHandler(getProfileById))
+    .patch([UserAuth], expressAsyncHandler(updateProfile))
 
   return router
 }

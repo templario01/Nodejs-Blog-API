@@ -1,5 +1,5 @@
 import { Exclude, Expose } from 'class-transformer'
-import { IsEnum, IsNotEmpty, IsString } from 'class-validator'
+import { IsNotEmpty, IsString } from 'class-validator'
 
 import { BaseDto } from '../baste.dto'
 import {
@@ -11,28 +11,18 @@ import {
 @Exclude()
 export class CreateUserImageRequest extends BaseDto {
   @Expose()
-  @IsEnum(() => ContentTypeEnum, {
-    message: 'Supported values: PNG or JPG or JPEG',
-  })
   @IsNotEmpty()
-  readonly contentType: ContentTypeEnum
-
-  @Expose()
-  @IsEnum(() => FileExtensionEnum, {
-    message: 'Supported values: PNG or JPG or JPEG',
-  })
-  @IsNotEmpty()
-  readonly ext: FileExtensionEnum
-
-  @Expose()
-  @IsEnum(() => ParentEnum, {
-    message: 'Supported values: USER or POST',
-  })
-  @IsNotEmpty()
-  readonly parentType: ParentEnum
+  @IsString()
+  readonly fileExtension: string
 
   @Expose()
   @IsString()
+  @IsNotEmpty()
+  readonly parentType: string
+
+  @Expose()
+  @IsString()
+  @IsNotEmpty()
   readonly filename: string
 }
 

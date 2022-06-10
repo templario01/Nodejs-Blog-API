@@ -19,6 +19,11 @@ import {
 } from '../dtos/attachment/create-attachment.dto'
 import { AttachmentResponse } from '../dtos/attachment/response/attachment.response'
 import { UpdateUserImageRequest } from '../dtos/attachment/update-attachment.dto'
+import {
+  ContentTypeEnum,
+  FileExtensionEnum,
+  ParentEnum,
+} from '../dtos/attachment/attachment.enum'
 import { AtachmentService } from './attachment.service'
 
 export type UserWithRole = User & {
@@ -232,18 +237,18 @@ export class UserService {
     request: CreateUserImageRequest,
     userId: string,
   ) {
+    this.validateFileAndParent(request)
     const { id } = await prisma.profile.findUnique({
       where: { userId },
     })
+
     const haveImage = await AtachmentService.findByProfile(id)
+
     if (haveImage) {
       throw new BadRequest(`user already have profile image`)
     }
-    const attachmentRequest: CreateAttachment = {
-      ...request,
-      postOrProfileId: id,
-    }
-    const setImage = await AtachmentService.createAttachment(attachmentRequest)
+    const attachment = this.attachmentRequest(request, id)
+    const setImage = await AtachmentService.createAttachment(attachment)
 
     return plainToClass(AttachmentResponse, {
       ...setImage,
@@ -255,6 +260,7 @@ export class UserService {
     request: UpdateUserImageRequest,
     userId: string,
   ) {
+    this.validateFileAndParent(request)
     const { id } = await prisma.profile.findUnique({
       where: { userId },
     })
@@ -262,6 +268,46 @@ export class UserService {
     if (!findImage) {
       throw new NotFound(`image not found, please set an image`)
     }
-    return AtachmentService.updateImageById(request, findImage.id)
+    const attachment = this.attachmentRequest(request, id)
+
+    return AtachmentService.updateImageById(attachment, findImage.id)
+  }
+
+  private static validateFileAndParent(request: UpdateUserImageRequest): void {
+    const { fileExtension, parentType } = request
+    if (
+      fileExtension !== 'PNG' &&
+      fileExtension !== 'JPG' &&
+      fileExtension !== 'JPEG'
+    ) {
+      throw new BadRequest('extensions supported: PNG, JPG or JPEG')
+    }
+    if (parentType !== 'USER' && parentType !== 'POST') {
+      throw new BadRequest('parent type must be USER or POST')
+    }
+  }
+
+  private static attachmentRequest(
+    request: UpdateUserImageRequest,
+    profileId: string,
+  ): CreateAttachment {
+    const { fileExtension, parentType } = request
+    return {
+      contentType:
+        fileExtension === 'PNG'
+          ? ContentTypeEnum.PNG
+          : fileExtension === 'JPG'
+          ? ContentTypeEnum.JPG
+          : ContentTypeEnum.JPEG,
+      ext:
+        fileExtension === 'PNG'
+          ? FileExtensionEnum.PNG
+          : fileExtension === 'JPG'
+          ? FileExtensionEnum.JPG
+          : FileExtensionEnum.JPEG,
+      filename: request.filename,
+      parentType: parentType === 'USER' ? ParentEnum.USER : ParentEnum.POST,
+      postOrProfileId: profileId,
+    }
   }
 }
