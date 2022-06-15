@@ -31,6 +31,7 @@ export type UserWithRole = User & {
 }
 
 export type UserWithProfile = {
+  imageUrl?: string
   email: string
   posts?: Post[]
   profile?: {
@@ -56,32 +57,42 @@ export class UserService {
   static async findUserWithProfileById(
     userId: string,
   ): Promise<UserWithProfile> {
+    let attachment = null
     const { profile } = await prisma.user.findFirst({
       where: {
         id: userId,
-        profile: {
-          view: ProfileView.PUBLIC,
-        },
       },
       select: {
         profile: {
           select: {
             view: true,
+            attachment: {
+              select: {
+                id: true,
+              },
+            },
           },
         },
       },
     })
+
     if (profile?.view == ProfileView.PRIVATE) {
-      return prisma.user.findUnique({
+      const user = await prisma.user.findUnique({
         where: { id: userId },
         select: {
           email: true,
           profile: { select: { view: true } },
         },
       })
+      if (profile?.attachment) {
+        attachment = await AtachmentService.finndImageById(
+          profile?.attachment.id,
+        )
+      }
+      return { ...user, imageUrl: attachment?.signedUrl }
     }
 
-    return prisma.user.findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
         email: true,
@@ -95,6 +106,10 @@ export class UserService {
         },
       },
     })
+    if (profile?.attachment) {
+      attachment = await AtachmentService.finndImageById(profile?.attachment.id)
+    }
+    return { ...user, imageUrl: attachment?.signedUrl }
   }
 
   static findUserByEmail(email: string): Promise<UserWithRole | null> {

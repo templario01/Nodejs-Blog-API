@@ -26,21 +26,21 @@ main()
     await prisma.$disconnect()
   })
 
-async function createTestUser(): Promise<User> {
+function createTestUser(): Promise<User> {
   const user = 'test@gmail.com'
   const password = hashSync('test', 10)
   return createUser(user, password, UserRole.USER)
 }
 
-async function createAdminUser() {
+function createAdminUser() {
   const user = 'vict.benavente@gmail.com'
   const password = hashSync('admin', 10)
-  return await createUser(user, password, UserRole.ADMIN)
+  return createUser(user, password, UserRole.ADMIN)
 }
 
-async function createRoles(): Promise<Role[]> {
+function createRoles(): Promise<Role[]> {
   const roles = [UserRole.USER, UserRole.ADMIN]
-  const roleTasks = roles.map((role) => {
+  const roleTasks = roles.map(async (role) => {
     return prisma.role.upsert({
       where: { name: role },
       create: { name: role },
@@ -55,7 +55,7 @@ async function createUser(
   password: string,
   role: UserRole,
 ): Promise<User> {
-  return await prisma.user.upsert({
+  return prisma.user.upsert({
     where: { email: username },
     create: {
       email: username,
