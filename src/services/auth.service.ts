@@ -141,11 +141,15 @@ export class AuthService {
   }
 
   static async logOut(userId: string): Promise<boolean> {
+    const user = await UserService.findUserById(userId)
+    if (!user) {
+      throw new NotFound(`User with id: ${userId} does not exist`)
+    }
     const removeToken = await UserService.removeRefreshToken(userId)
     return !!removeToken
   }
 
-  static generateToken(time: number, userId: string) {
+  private static generateToken(time: number, userId: string) {
     return jwt.sign({ id: userId }, process.env.SECRET_KEY as string, {
       expiresIn: time,
     })

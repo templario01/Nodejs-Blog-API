@@ -1,5 +1,4 @@
 import bcrypt from 'bcryptjs'
-import { randGitShortSha } from '@ngneat/falso'
 import {
   AccountStatus,
   Post,
@@ -24,6 +23,7 @@ import {
   FileExtensionEnum,
   ParentEnum,
 } from '../dtos/attachment/attachment.enum'
+import { randCode } from '../utils/rand-values'
 import { AtachmentService } from './attachment.service'
 
 export type UserWithRole = User & {
@@ -47,10 +47,11 @@ export type UserWithCompleteProfile = User & {
 }
 
 export class UserService {
-  static findUserById(userId: string): Promise<UserWithRole> {
+  static findUserById(userId: string): Promise<UserWithRole | null> {
     return prisma.user.findUnique({
       where: { id: userId },
       include: { role: true },
+      rejectOnNotFound: false,
     })
   }
 
@@ -125,7 +126,7 @@ export class UserService {
   ): Promise<UserWithCompleteProfile> {
     const { email, firstName, lastName, password } = params
     const encryptPassword = await this.encryptPassword(password)
-    const code = randGitShortSha().toUpperCase().slice(1)
+    const code = randCode()
 
     return prisma.user.create({
       data: {
@@ -233,7 +234,7 @@ export class UserService {
   }
 
   static resendCode(userId: string): Promise<UserWithCompleteProfile> {
-    const code = randGitShortSha().toUpperCase().slice(1)
+    const code = randCode()
     return prisma.user.update({
       where: { id: userId },
       data: { verificationCode: code, updateAt: new Date() },
