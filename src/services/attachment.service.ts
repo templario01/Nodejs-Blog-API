@@ -1,6 +1,6 @@
 import { GetSignedUrlConfig, Storage } from '@google-cloud/storage'
 import { Cors } from '@google-cloud/storage/build/src/storage'
-import { randEthereumAddress } from '@ngneat/falso'
+import { randUuid } from '@ngneat/falso'
 import { Attachment } from '@prisma/client'
 import { plainToClass } from 'class-transformer'
 import {
@@ -39,16 +39,16 @@ export class AtachmentService {
       expires: Date.now() + 15 * 60 * 1000,
     }
     const path = AttachmentDirectoryEnum[input.parentType].toString()
-    const nanoId = randEthereumAddress()
+    const nanoId = randUuid()
     const signedURL = await bucket
       .file(`${path}/${nanoId}-${input.filename}.${input.ext}`)
       .getSignedUrl(signedUploadCfg as GetSignedUrlConfig)
 
     const image = await prisma.attachment.create({
       data: {
-        contentType: input.contentType,
+        contentType: input.contentType as string,
         keyname: `${nanoId}-${input.filename}`,
-        ext: input.ext,
+        ext: input.ext as string,
         path,
         postId:
           input.parentType === ParentEnum.POST ? input.postOrProfileId : null,
@@ -114,7 +114,7 @@ export class AtachmentService {
       expires: Date.now() + 15 * 60 * 1000,
     }
     const path = AttachmentDirectoryEnum[input.parentType].toString()
-    const nanoId = randEthereumAddress()
+    const nanoId = randUuid()
     const file = `${path}/${nanoId}-${input.filename}.${input.ext}`
     const signedURL = await bucket
       .file(file)

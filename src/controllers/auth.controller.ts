@@ -17,7 +17,9 @@ export async function SignIn(req: Request, res: Response): Promise<void> {
   const request = plainToClass(SignInRequest, req.body)
   await request.isValid()
   const result = await AuthService.signIn(request)
-  res.status(201).json(result)
+  res.setHeader('x-token', result.access_token)
+  res.setHeader('x-refresh-token', result.refresh_token)
+  res.status(201).json({ authenticated: !!request })
 }
 
 export async function logOut(req: Request, res: Response): Promise<void> {

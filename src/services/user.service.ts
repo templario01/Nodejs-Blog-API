@@ -1,5 +1,4 @@
 import bcrypt from 'bcryptjs'
-import { randGitShortSha } from '@ngneat/falso'
 import {
   AccountStatus,
   Post,
@@ -24,6 +23,7 @@ import {
   FileExtensionEnum,
   ParentEnum,
 } from '../dtos/attachment/attachment.enum'
+import { randCode } from '../utils/rand-values'
 import { AtachmentService } from './attachment.service'
 
 export type UserWithRole = User & {
@@ -31,6 +31,7 @@ export type UserWithRole = User & {
 }
 
 export type UserWithProfile = {
+  imageUrl?: string
   email: string
   posts?: Post[]
   profile?: {
@@ -46,42 +47,53 @@ export type UserWithCompleteProfile = User & {
 }
 
 export class UserService {
-  static findUserById(userId: string): Promise<UserWithRole> {
+  static findUserById(userId: string): Promise<UserWithRole | null> {
     return prisma.user.findUnique({
       where: { id: userId },
       include: { role: true },
+      rejectOnNotFound: false,
     })
   }
 
   static async findUserWithProfileById(
     userId: string,
   ): Promise<UserWithProfile> {
+    let attachment = null
     const { profile } = await prisma.user.findFirst({
       where: {
         id: userId,
-        profile: {
-          view: ProfileView.PUBLIC,
-        },
       },
       select: {
         profile: {
           select: {
             view: true,
+            attachment: {
+              select: {
+                id: true,
+              },
+            },
           },
         },
       },
     })
+
     if (profile?.view == ProfileView.PRIVATE) {
-      return prisma.user.findUnique({
+      const user = await prisma.user.findUnique({
         where: { id: userId },
         select: {
           email: true,
           profile: { select: { view: true } },
         },
       })
+      if (profile?.attachment) {
+        attachment = await AtachmentService.finndImageById(
+          profile?.attachment.id,
+        )
+      }
+      return { ...user, imageUrl: attachment?.signedUrl }
     }
 
-    return prisma.user.findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
         email: true,
@@ -95,6 +107,10 @@ export class UserService {
         },
       },
     })
+    if (profile?.attachment) {
+      attachment = await AtachmentService.finndImageById(profile?.attachment.id)
+    }
+    return { ...user, imageUrl: attachment?.signedUrl }
   }
 
   static findUserByEmail(email: string): Promise<UserWithRole | null> {
@@ -110,7 +126,7 @@ export class UserService {
   ): Promise<UserWithCompleteProfile> {
     const { email, firstName, lastName, password } = params
     const encryptPassword = await this.encryptPassword(password)
-    const code = randGitShortSha().toUpperCase().slice(1)
+    const code = randCode()
 
     return prisma.user.create({
       data: {
@@ -218,7 +234,7 @@ export class UserService {
   }
 
   static resendCode(userId: string): Promise<UserWithCompleteProfile> {
-    const code = randGitShortSha().toUpperCase().slice(1)
+    const code = randCode()
     return prisma.user.update({
       where: { id: userId },
       data: { verificationCode: code, updateAt: new Date() },

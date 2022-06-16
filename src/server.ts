@@ -19,7 +19,7 @@ app.use(express.json())
 app.use(passport.initialize())
 passport.use('authGuard', JWTStrategy)
 
-const whiteList = ['http://localhost:3000', ['*']]
+const whiteList = ['http://localhost:3000', 'http://localhost:3001']
 const corsOptionsDelegate = function handler(
   req: Request,
   callback: (err: Error | null, options?: CorsOptions) => void,
