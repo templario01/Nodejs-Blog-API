@@ -1,11 +1,20 @@
 import { Post, PostStatus } from '@prisma/client'
+import { BadRequest } from 'http-errors'
 import { CreatePostRequest } from '../dtos/post/request/create-post.dto'
 import { UpdatePostRequest } from '../dtos/post/request/update-post.dto'
 import { prisma } from '../prisma'
 import { Paginated } from '../utils/paginated'
+import { UserService } from './user.service'
 
 export class PostService {
-  static createPost(post: CreatePostRequest, userId: string): Promise<Post> {
+  static async createPost(
+    post: CreatePostRequest,
+    userId: string,
+  ): Promise<Post> {
+    const user = await UserService.findUserById(userId)
+    if (!user) {
+      throw new BadRequest(`Invalid userId: ${userId}`)
+    }
     return prisma.post.create({
       data: {
         title: post.title,
@@ -16,7 +25,14 @@ export class PostService {
     })
   }
 
-  static updatePost(post: UpdatePostRequest, postId: string): Promise<Post> {
+  static async updatePost(
+    post: UpdatePostRequest,
+    postId: string,
+  ): Promise<Post> {
+    const existPost = await this.getPostById(postId)
+    if (!existPost) {
+      throw new BadRequest(`Invalid postId: ${postId}`)
+    }
     return prisma.post.update({
       where: {
         id: postId,
@@ -29,7 +45,11 @@ export class PostService {
     })
   }
 
-  static changeToDeleted(postId: string): Promise<Post> {
+  static async changeToDeleted(postId: string): Promise<Post> {
+    const existPost = await this.getPostById(postId)
+    if (!existPost) {
+      throw new BadRequest(`Invalid postId: ${postId}`)
+    }
     return prisma.post.update({
       where: {
         id: postId,
@@ -78,11 +98,12 @@ export class PostService {
     }
   }
 
-  static getPostById(postId: string): Promise<Post> {
+  static getPostById(postId: string): Promise<Post | null> {
     return prisma.post.findUnique({
       where: {
         id: postId,
       },
+      rejectOnNotFound: false,
     })
   }
 }
